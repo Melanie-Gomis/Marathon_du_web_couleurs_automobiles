@@ -20,7 +20,6 @@ Le projet repose sur une analyse exploratoire des données  incluant :
 - Identification de tendances 
 
 Résultats attendus :
-
 Production de visualisations claires, lisibles et facilement interprétables.
 
 Contraintes : 
