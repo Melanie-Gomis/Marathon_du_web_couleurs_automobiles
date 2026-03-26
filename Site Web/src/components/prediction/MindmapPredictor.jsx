@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Sparkles, Car, ChevronDown, X } from "lucide-react";
+import { Sparkles, X, Car, Globe, User, Calendar } from "lucide-react";
 
 /* ── Images par couleur ── */
 import imgBlanc from "../../assets/prediction/VOITURES_BLANC.png";
@@ -18,7 +18,6 @@ const NEUTRAL_IMAGES = [
   { name: "Gris", img: imgGris, color: "#9E9E9E" },
   { name: "Noir", img: imgNoir, color: "#333333" },
 ];
-
 const ORIGINAL_IMAGES = [
   { name: "Bleu", img: imgBleu, color: "#1565C0" },
   { name: "Rouge", img: imgRouge, color: "#C62828" },
@@ -29,30 +28,29 @@ const ORIGINAL_IMAGES = [
   { name: "Violet", img: imgViolet, color: "#6A1B9A" },
 ];
 
-/* ── Données des branches ── */
 const BRANCHES = [
   {
     key: "make",
     label: "Marque",
-    icon: "🚗",
+    Icon: Car,
     color: "#3B82F6",
-    angle: -140,      // position en degrés autour du centre
+    bg: "#EFF6FF",
     options: ["HONDA", "TOYOTA", "VOLKSWAGEN", "HYUNDAI", "AUDI", "KIA", "ALFAROMEO", "FIAT", "PEUGEOT"],
   },
   {
     key: "race",
     label: "Nationalité",
-    icon: "🌍",
+    Icon: Globe,
     color: "#10B981",
-    angle: -40,
+    bg: "#ECFDF5",
     options: ["WHITE", "HISPANIC", "BLACK", "OTHER", "ASIAN", "NATIVE AMERICAN"],
   },
   {
     key: "gender",
     label: "Genre",
-    icon: "👤",
+    Icon: User,
     color: "#8B5CF6",
-    angle: 140,
+    bg: "#F5F3FF",
     options: [
       { value: "M", label: "Homme" },
       { value: "F", label: "Femme" },
@@ -62,9 +60,9 @@ const BRANCHES = [
   {
     key: "year",
     label: "Année",
-    icon: "📅",
+    Icon: Calendar,
     color: "#F59E0B",
-    angle: 40,
+    bg: "#FFFBEB",
     options: [2020, 2021, 2022, 2023, 2024, 2025, 2026],
   },
 ];
@@ -73,127 +71,113 @@ function simulatePrediction(make, race, gender, year) {
   const str = `${make}-${race}-${gender}-${year}`;
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
     hash = hash & hash;
   }
-  const mod = Math.abs(hash) % 50;
-  return mod === 0 ? 1 : 0;
+  return Math.abs(hash) % 50 === 0 ? 1 : 0;
 }
 
-/* ── Composant branche du mindmap ── */
-function BranchNode({ branch, value, onSelect, isOpen, onToggle }) {
+/* ══════════════════════════════════════════════════════
+   Branch Node — carte cliquable avec dropdown
+   ══════════════════════════════════════════════════════ */
+function BranchCard({ branch, value, onSelect, isOpen, onToggle }) {
   const ref = useRef(null);
-
-  // Position de la branche sur un cercle autour du centre
-  const radius = 180; // distance du centre
-  const rad = (branch.angle * Math.PI) / 180;
-  const x = Math.cos(rad) * radius;
-  const y = Math.sin(rad) * radius;
-
-  // Ligne SVG du centre vers la branche
-  const lineEndX = Math.cos(rad) * (radius - 45);
-  const lineEndY = Math.sin(rad) * (radius - 45);
+  const { Icon, color, bg, label, options, key } = branch;
 
   const displayValue = value
-    ? typeof branch.options[0] === "object"
-      ? branch.options.find((o) => o.value === value)?.label || value
+    ? typeof options[0] === "object"
+      ? options.find((o) => o.value === value)?.label || value
       : String(value)
     : null;
 
-  // Close on outside click
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) onToggle(null);
+      // Use setTimeout to let the click event on options fire first
+      setTimeout(() => {
+        if (ref.current && !ref.current.contains(e.target)) onToggle(null);
+      }, 0);
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
   }, [isOpen, onToggle]);
 
   return (
-    <>
-      {/* SVG line */}
-      <line
-        x1={0}
-        y1={0}
-        x2={lineEndX}
-        y2={lineEndY}
-        stroke={branch.color}
-        strokeWidth={2.5}
-        strokeDasharray={value ? "none" : "6 4"}
-        opacity={value ? 0.8 : 0.35}
-        className="transition-all duration-300"
-      />
-
-      {/* Branch node (foreign object for HTML content) */}
-      <foreignObject
-        x={x - 55}
-        y={y - 55}
-        width={isOpen ? 200 : 110}
-        height={isOpen ? 350 : 110}
-        style={{ overflow: "visible" }}
+    <div ref={ref} className="relative">
+      {/* Carte */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle(isOpen ? null : key);
+        }}
+        className="w-full rounded-2xl border-2 p-4 flex flex-col items-center gap-2
+                   transition-all duration-200 hover:scale-[1.03] hover:shadow-lg"
+        style={{
+          backgroundColor: value ? color : bg,
+          borderColor: color,
+          color: value ? "white" : color,
+        }}
       >
-        <div ref={ref} className="relative" style={{ width: 110, height: 110 }}>
-          {/* Node circle */}
-          <button
-            onClick={() => onToggle(isOpen ? null : branch.key)}
-            className="w-full h-[70px] rounded-2xl border-2 flex flex-col items-center justify-center gap-0.5 transition-all duration-200 hover:scale-105 shadow-md"
+        <Icon className="w-6 h-6" />
+        <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
+        {displayValue && (
+          <span
+            className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
             style={{
-              backgroundColor: value ? branch.color : "white",
-              borderColor: branch.color,
-              color: value ? "white" : branch.color,
-              marginTop: 20,
+              backgroundColor: value ? "rgba(255,255,255,0.25)" : "transparent",
             }}
           >
-            <span className="text-lg">{branch.icon}</span>
-            <span className="text-[10px] font-bold uppercase tracking-wide">
-              {displayValue || branch.label}
-            </span>
-          </button>
+            {displayValue}
+          </span>
+        )}
+      </button>
 
-          {/* Dropdown */}
-          {isOpen && (
-            <div
-              className="absolute z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-2 min-w-[160px] max-h-[200px] overflow-y-auto"
-              style={{
-                left: "50%",
-                transform: "translateX(-50%)",
-                top: 95,
-              }}
-            >
-              {branch.options.map((opt) => {
-                const optValue = typeof opt === "object" ? opt.value : opt;
-                const optLabel = typeof opt === "object" ? opt.label : String(opt);
-                const isSelected = String(value) === String(optValue);
-                return (
-                  <button
-                    key={optValue}
-                    onClick={() => {
-                      onSelect(branch.key, typeof opt === "object" ? opt.value : opt);
-                      onToggle(null);
-                    }}
-                    className={`
-                      w-full text-left px-3 py-2 text-sm rounded-lg transition-colors
-                      ${isSelected
-                        ? "font-semibold text-white"
-                        : "text-gray-700 hover:bg-gray-50"
-                      }
-                    `}
-                    style={isSelected ? { backgroundColor: branch.color } : {}}
-                  >
-                    {optLabel}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+      {/* Ligne vers le centre (visible uniquement en desktop) */}
+      <div
+        className="hidden md:block absolute w-0.5 left-1/2 -translate-x-1/2"
+        style={{
+          backgroundColor: color,
+          opacity: value ? 0.6 : 0.2,
+          height: 24,
+          // Branches du haut: ligne vers le bas, branches du bas: ligne vers le haut
+          ...(["make", "race"].includes(key)
+            ? { bottom: -24 }
+            : { top: -24 }),
+        }}
+      />
+
+      {/* Dropdown */}
+      {isOpen && (
+        <div className="absolute z-50 left-1/2 -translate-x-1/2 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 p-1.5 min-w-[170px] max-h-[220px] overflow-y-auto">
+          {options.map((opt) => {
+            const optValue = typeof opt === "object" ? opt.value : opt;
+            const optLabel = typeof opt === "object" ? opt.label : String(opt);
+            const isSelected = String(value) === String(optValue);
+            return (
+              <button
+                key={optValue}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(key, optValue);
+                  onToggle(null);
+                }}
+                className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors
+                  ${isSelected ? "font-semibold text-white" : "text-gray-700 hover:bg-gray-50"}`}
+                style={isSelected ? { backgroundColor: color } : {}}
+              >
+                {optLabel}
+              </button>
+            );
+          })}
         </div>
-      </foreignObject>
-    </>
+      )}
+    </div>
   );
 }
 
+/* ══════════════════════════════════════════════════════
+   Composant principal — layout responsive
+   ══════════════════════════════════════════════════════ */
 export default function MindmapPredictor() {
   const [values, setValues] = useState({ make: "", race: "", gender: "", year: "" });
   const [openBranch, setOpenBranch] = useState(null);
@@ -213,8 +197,7 @@ export default function MindmapPredictor() {
     setIsAnimating(true);
     setResult(null);
     setTimeout(() => {
-      const prediction = simulatePrediction(values.make, values.race, values.gender, values.year);
-      setResult(prediction);
+      setResult(simulatePrediction(values.make, values.race, values.gender, values.year));
       setIsAnimating(false);
     }, 1500);
   };
@@ -228,78 +211,132 @@ export default function MindmapPredictor() {
   const resultImages = result === 0 ? NEUTRAL_IMAGES : ORIGINAL_IMAGES;
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      {/* ── Mindmap SVG ── */}
-      <div className="relative flex items-center justify-center" style={{ minHeight: 500 }}>
-        <svg
-          viewBox="-280 -280 560 560"
-          className="w-full max-w-[560px]"
-          style={{ overflow: "visible" }}
-        >
-          {/* Branches — render the open one LAST so it's on top in SVG z-order */}
-          {[...BRANCHES]
-            .sort((a, b) => {
-              if (a.key === openBranch) return 1;
-              if (b.key === openBranch) return -1;
-              return 0;
-            })
-            .map((branch) => (
-              <BranchNode
-                key={branch.key}
-                branch={branch}
-                value={values[branch.key]}
-                isOpen={openBranch === branch.key}
-                onSelect={handleSelect}
-                onToggle={setOpenBranch}
-              />
-            ))
-          }
+    <div className="w-full max-w-3xl mx-auto px-4">
 
-          {/* Centre node */}
-          <foreignObject x={-55} y={-55} width={110} height={110}>
-            <div className="w-[110px] h-[110px] flex items-center justify-center">
-              <button
-                onClick={isFormValid ? handlePredict : undefined}
-                disabled={!isFormValid || isAnimating}
-                className={`
-                  w-[100px] h-[100px] rounded-full border-4 flex flex-col items-center justify-center gap-1
-                  transition-all duration-300 shadow-xl
-                  ${isFormValid && !isAnimating
-                    ? "bg-meetdeal-600 border-meetdeal-700 text-white cursor-pointer hover:scale-110 hover:shadow-2xl"
-                    : "bg-gray-800 border-gray-700 text-white cursor-default"
-                  }
-                `}
-              >
-                {isAnimating ? (
-                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    <span className="text-[9px] font-bold uppercase tracking-wider">
-                      {isFormValid ? "Prédire" : "Profil"}
-                    </span>
-                    <span className="text-[8px] opacity-70">{filledCount}/4</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </foreignObject>
-        </svg>
+      {/* ═══ MINDMAP LAYOUT ═══
+          Desktop: grille 2x3 avec centre au milieu
+             [Marque]    [Nationalité]
+                   [CENTRE]
+             [Genre]      [Année]
+
+          Mobile: stack vertical avec centre en haut
+      */}
+
+      {/* ── Desktop layout ── */}
+      <div className="hidden md:block">
+        {/* Row 1: Top branches */}
+        <div className="grid grid-cols-2 gap-8 max-w-md mx-auto mb-6">
+          {BRANCHES.slice(0, 2).map((b) => (
+            <BranchCard
+              key={b.key}
+              branch={b}
+              value={values[b.key]}
+              isOpen={openBranch === b.key}
+              onSelect={handleSelect}
+              onToggle={setOpenBranch}
+            />
+          ))}
+        </div>
+
+        {/* Center node */}
+        <div className="flex justify-center mb-6">
+          <button
+            onClick={isFormValid ? handlePredict : undefined}
+            disabled={!isFormValid || isAnimating}
+            className={`
+              w-28 h-28 rounded-full border-4 flex flex-col items-center justify-center gap-1.5
+              transition-all duration-300 shadow-xl
+              ${isFormValid && !isAnimating
+                ? "bg-meetdeal-600 border-meetdeal-700 text-white cursor-pointer hover:scale-110 hover:shadow-2xl"
+                : "bg-gray-800 border-gray-700 text-white cursor-default"
+              }
+            `}
+          >
+            {isAnimating ? (
+              <div className="w-7 h-7 border-3 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Sparkles className="w-6 h-6" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">
+                  {isFormValid ? "Prédire" : "Profil"}
+                </span>
+                <span className="text-[9px] opacity-70">{filledCount}/4</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Row 2: Bottom branches */}
+        <div className="grid grid-cols-2 gap-8 max-w-md mx-auto">
+          {BRANCHES.slice(2, 4).map((b) => (
+            <BranchCard
+              key={b.key}
+              branch={b}
+              value={values[b.key]}
+              isOpen={openBranch === b.key}
+              onSelect={handleSelect}
+              onToggle={setOpenBranch}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* ── Mobile layout ── */}
+      <div className="md:hidden space-y-4">
+        {/* Center node */}
+        <div className="flex justify-center mb-2">
+          <button
+            onClick={isFormValid ? handlePredict : undefined}
+            disabled={!isFormValid || isAnimating}
+            className={`
+              w-24 h-24 rounded-full border-4 flex flex-col items-center justify-center gap-1
+              transition-all duration-300 shadow-xl
+              ${isFormValid && !isAnimating
+                ? "bg-meetdeal-600 border-meetdeal-700 text-white cursor-pointer"
+                : "bg-gray-800 border-gray-700 text-white cursor-default"
+              }
+            `}
+          >
+            {isAnimating ? (
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5" />
+                <span className="text-[9px] font-bold uppercase">{isFormValid ? "Prédire" : "Profil"}</span>
+                <span className="text-[8px] opacity-70">{filledCount}/4</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Branches in 2x2 grid */}
+        <div className="grid grid-cols-2 gap-3">
+          {BRANCHES.map((b) => (
+            <BranchCard
+              key={b.key}
+              branch={b}
+              value={values[b.key]}
+              isOpen={openBranch === b.key}
+              onSelect={handleSelect}
+              onToggle={setOpenBranch}
+            />
+          ))}
+        </div>
       </div>
 
       {/* ── Instructions ── */}
       {!result && !isAnimating && (
-        <p className="text-center text-sm text-gray-400 -mt-4 mb-4">
+        <p className="text-center text-sm text-gray-400 mt-6">
           {isFormValid
-            ? "Cliquez sur le noeud central pour lancer la prédiction"
-            : "Cliquez sur chaque branche pour remplir votre profil"
+            ? "Cliquez sur le cercle central pour lancer la prédiction"
+            : "Sélectionnez chaque critère pour remplir votre profil"
           }
         </p>
       )}
 
       {/* ── Reset ── */}
       {filledCount > 0 && !isAnimating && (
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mt-4">
           <button
             onClick={handleReset}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-xs text-gray-500 hover:text-meetdeal-600 hover:bg-gray-50 rounded-lg transition-colors"
@@ -310,41 +347,33 @@ export default function MindmapPredictor() {
         </div>
       )}
 
-      {/* ── Résultat ── */}
+      {/* ═══ RÉSULTAT ═══ */}
       {result !== null && !isAnimating && (
-        <div className="animate-fade-in">
-          {/* Message */}
+        <div className="mt-8 animate-fade-in">
           <div
-            className={`
-              p-6 rounded-2xl mb-6 text-center mx-auto max-w-xl
+            className={`p-6 rounded-2xl mb-6 text-center mx-auto max-w-xl
               ${result === 0
                 ? "bg-gradient-to-br from-gray-50 via-white to-gray-100 border border-gray-200"
                 : "bg-gradient-to-br from-amber-50 via-white to-orange-50 border border-amber-200"
-              }
-            `}
+              }`}
           >
             <p className={`text-xl font-bold mb-2 ${result === 0 ? "text-gray-800" : "text-amber-700"}`}>
-              {result === 0
-                ? "🚗 Couleur neutre"
-                : "🌈 Couleur originale"
-              }
+              {result === 0 ? "🚗 Couleur neutre" : "🌈 Couleur originale"}
             </p>
             <p className={`text-sm mb-1 ${result === 0 ? "text-gray-600" : "text-amber-600"}`}>
               {result === 0
                 ? "Une voiture de couleur neutre te correspondrait le plus selon nous !"
-                : "Tu fais partie des 2% à qui une couleur originale ferait l'affaire selon nous !"
-              }
+                : "Tu fais partie des 2% à qui une couleur originale ferait l'affaire selon nous !"}
             </p>
             <p className="text-xs text-gray-400 mt-2">
               {result === 0
                 ? "Les couleurs neutres (blanc, gris, noir) représentent 98% des préférences."
-                : "Tu as un profil rare ! Les couleurs vives représentent seulement 2% des choix."
-              }
+                : "Tu as un profil rare ! Les couleurs vives représentent seulement 2% des choix."}
             </p>
           </div>
 
-          {/* Pastilles de couleur */}
-          <div className="flex items-center justify-center gap-4 mb-8">
+          {/* Pastilles */}
+          <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
             {resultImages.map((c, i) => (
               <div
                 key={c.name}
@@ -352,7 +381,7 @@ export default function MindmapPredictor() {
                 style={{ animationDelay: `${i * 80}ms` }}
               >
                 <div
-                  className="w-12 h-12 rounded-full shadow-lg border-2"
+                  className="w-11 h-11 rounded-full shadow-lg border-2"
                   style={{
                     backgroundColor: c.color,
                     borderColor: c.name === "Blanc" ? "#D1D5DB" : c.color,
@@ -363,14 +392,14 @@ export default function MindmapPredictor() {
             ))}
           </div>
 
-          {/* Voitures animation zone */}
+          {/* Voitures animation */}
           <div className="relative h-24 overflow-hidden rounded-2xl bg-gradient-to-r from-gray-50 via-white to-gray-50 border border-gray-100 mx-auto max-w-xl">
             {resultImages.map((car, i) => (
               <img
                 key={car.name}
                 src={car.img}
                 alt={car.name}
-                className="absolute h-18 object-contain"
+                className="absolute object-contain"
                 style={{
                   animation: `car-slide-right ${7 + i * 0.8}s linear infinite`,
                   animationDelay: `${i * 2}s`,
@@ -398,12 +427,8 @@ export default function MindmapPredictor() {
           70% { transform: scale(1.15); }
           100% { opacity: 1; transform: scale(1); }
         }
-        .animate-fade-in {
-          animation: fade-in 0.6s ease-out both;
-        }
-        .animate-pop-in {
-          animation: pop-in 0.4s ease-out both;
-        }
+        .animate-fade-in { animation: fade-in 0.6s ease-out both; }
+        .animate-pop-in { animation: pop-in 0.4s ease-out both; }
       `}</style>
     </div>
   );

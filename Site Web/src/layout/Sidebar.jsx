@@ -14,11 +14,11 @@ import { useFilters } from "../store/FilterContext";
 import { BRANDS } from "../data/mockData";
 
 const NAV_ITEMS = [
-  { to: "/dashboard",              icon: LayoutDashboard, label: "Vue d'ensemble" },
-  { to: "/dashboard/carte",        icon: Map,             label: "Cartographie" },
-  { to: "/dashboard/graphiques",   icon: BarChart3,       label: "Graphiques" },
-  { to: "/dashboard/concurrence",  icon: GitFork,         label: "Concurrence" },
-  { to: "/dashboard/couleurs",     icon: Palette,         label: "Couleurs reprise" },
+  { to: "/dashboard", icon: LayoutDashboard, label: "Vue d'ensemble" },
+  { to: "/dashboard/carte", icon: Map, label: "Cartographie" },
+  { to: "/dashboard/graphiques", icon: BarChart3, label: "Graphiques" },
+  { to: "/dashboard/concurrence", icon: GitFork, label: "Concurrence" },
+  { to: "/dashboard/couleurs", icon: Palette, label: "Couleurs" },
 ];
 
 export default function Sidebar({ collapsed, onToggle }) {
@@ -43,7 +43,10 @@ export default function Sidebar({ collapsed, onToggle }) {
       {/* ── Header ──────────────────── */}
       <div className="flex items-center justify-between px-4 h-16 border-b border-border">
         {!collapsed && (
-          <span className="text-lg font-bold text-meetdeal-700 tracking-tight">
+          <span
+            onClick={() => navigate("/")}
+            className="text-lg font-bold text-meetdeal-700 tracking-tight cursor-pointer hover:text-meetdeal-500 transition-colors"
+          >
             MeetDeal
           </span>
         )}

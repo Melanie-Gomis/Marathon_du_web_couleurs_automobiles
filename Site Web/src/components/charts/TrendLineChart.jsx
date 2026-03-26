@@ -34,6 +34,7 @@ export default function TrendLineChart({
               tick={{ fontSize: 11, fill: "#6B7280" }}
               tickLine={false}
               axisLine={false}
+              allowDecimals={false}
             />
             <Tooltip
               contentStyle={{
@@ -44,7 +45,7 @@ export default function TrendLineChart({
             />
             <Line
               type="monotone"
-              dataKey="total"
+              dataKey="ventes"
               name="Total ventes"
               stroke="#991B1B"
               strokeWidth={2.5}

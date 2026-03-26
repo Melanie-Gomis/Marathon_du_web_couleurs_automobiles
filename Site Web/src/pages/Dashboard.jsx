@@ -68,7 +68,7 @@ export default function Dashboard() {
       {/* ── KPIs ────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
-          label="Total ventes"
+          label="Total lead exploré"
           value={kpis.totalVentes}
           icon={ShoppingCart}
         />
@@ -85,7 +85,7 @@ export default function Dashboard() {
           icon={Zap}
         />
         <KPICard
-          label="Taux concurrence"
+          label="Champ d'hésitation"
           value={kpis.tauxConcurrence}
           unit="%"
           icon={Target}
@@ -104,7 +104,7 @@ export default function Dashboard() {
           icon={Palette}
         />
         <KPICard
-          label="Répartition H/F"
+          label="Civilité HOMME / FEMME"
           value={`${kpis.pctHomme}% / ${kpis.pctFemme}%`}
           icon={Users}
         />
@@ -124,7 +124,7 @@ export default function Dashboard() {
 
       <SalesBarChart
         data={monthlyEnergie}
-        title="Ventes mensuelles par type d'énergie"
+        title="Ventes mensuelles par motorisation"
       />
 
       {/* ── Carte + Concurrence ─────── */}

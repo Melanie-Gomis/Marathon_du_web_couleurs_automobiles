@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Legend,
+  LineChart, Line, AreaChart, Area, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts";
+import { TrendingUp, BarChart3, Layers } from "lucide-react";
 import { useFilters } from "../store/FilterContext";
 import { BRANDS, COLOR_MAP } from "../data/mockData";
 import { fetchColorBreakdown, fetchMonthlyCouleur, fetchSankeyData } from "../services/api";
@@ -18,9 +20,16 @@ const LINE_COLORS = {
   Orange: "#E65100", Violet: "#6A1B9A",
 };
 
+const VIEW_MODES = [
+  { key: "line", icon: TrendingUp, label: "Courbes" },
+  { key: "area", icon: Layers, label: "Aires empilées" },
+  { key: "bar", icon: BarChart3, label: "Barres empilées" },
+];
+
 export default function CouleursPage() {
   const { filters } = useFilters();
   const currentBrand = BRANDS.find((b) => b.id === filters.brand);
+  const [viewMode, setViewMode] = useState("line");
 
   const dataVoiture = fetchColorBreakdown(filters, "voiture");
   const dataReprise = fetchColorBreakdown(filters, "reprise");
@@ -30,6 +39,17 @@ export default function CouleursPage() {
 
   const totalV = dataVoiture.reduce((a, d) => a + d.value, 0);
   const totalR = dataReprise.reduce((a, d) => a + d.value, 0);
+
+  // Données en % pour l'area chart empilé
+  const monthlyCouleurPct = monthlyCouleur.map((row) => {
+    const total = TOP_COLORS.reduce((sum, c) => sum + (row[c] || 0), 0);
+    if (total === 0) return { label: row.label };
+    const pctRow = { label: row.label };
+    TOP_COLORS.forEach((c) => {
+      pctRow[c] = Math.round(((row[c] || 0) / total) * 100);
+    });
+    return pctRow;
+  });
 
   return (
     <div className="space-y-6">
@@ -99,33 +119,76 @@ export default function CouleursPage() {
         </Card>
       </div>
 
-      {/* ── Évolution des couleurs dans le temps ── */}
+      {/* ── Évolution des couleurs dans le temps (multi-vues) ── */}
       {monthlyCouleur.length > 2 && (
         <Card>
           <CardHeader>
-            <CardTitle>Évolution des couleurs dans le temps</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Évolution des couleurs dans le temps</CardTitle>
+              <div className="flex items-center gap-1 bg-surface-alt rounded-lg p-1">
+                {VIEW_MODES.map(({ key, icon: Icon, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setViewMode(key)}
+                    title={label}
+                    className={`p-2 rounded-md transition-all ${
+                      viewMode === key
+                        ? "bg-white text-meetdeal-700 shadow-sm"
+                        : "text-text-muted hover:text-text"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </button>
+                ))}
+              </div>
+            </div>
           </CardHeader>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyCouleur}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid #E5E7EB", fontSize: "11px" }} />
-                <Legend wrapperStyle={{ fontSize: "10px" }} />
-                {TOP_COLORS.map((c) => (
-                  <Line
-                    key={c}
-                    type="monotone"
-                    dataKey={c}
-                    name={c}
-                    stroke={LINE_COLORS[c] || "#999"}
-                    strokeWidth={2}
-                    dot={{ r: 2 }}
-                    connectNulls
+              {viewMode === "line" ? (
+                <LineChart data={monthlyCouleur}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid #E5E7EB", fontSize: "11px" }} />
+                  <Legend wrapperStyle={{ fontSize: "10px" }} />
+                  {TOP_COLORS.map((c) => (
+                    <Line key={c} type="monotone" dataKey={c} name={c}
+                      stroke={LINE_COLORS[c] || "#999"} strokeWidth={2}
+                      dot={{ r: 2 }} connectNulls />
+                  ))}
+                </LineChart>
+              ) : viewMode === "area" ? (
+                <AreaChart data={monthlyCouleurPct}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false}
+                    domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: "8px", border: "1px solid #E5E7EB", fontSize: "11px" }}
+                    formatter={(value) => `${value}%`}
                   />
-                ))}
-              </LineChart>
+                  <Legend wrapperStyle={{ fontSize: "10px" }} />
+                  {TOP_COLORS.map((c) => (
+                    <Area key={c} type="monotone" dataKey={c} name={c}
+                      stroke={LINE_COLORS[c] || "#999"} fill={LINE_COLORS[c] || "#999"}
+                      fillOpacity={0.4} stackId="colors" connectNulls />
+                  ))}
+                </AreaChart>
+              ) : (
+                <BarChart data={monthlyCouleur}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "#6B7280" }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid #E5E7EB", fontSize: "11px" }} />
+                  <Legend wrapperStyle={{ fontSize: "10px" }} />
+                  {TOP_COLORS.map((c) => (
+                    <Bar key={c} dataKey={c} name={c}
+                      fill={LINE_COLORS[c] || "#999"} stackId="colors"
+                      radius={c === TOP_COLORS[TOP_COLORS.length - 1] ? [2, 2, 0, 0] : [0, 0, 0, 0]} />
+                  ))}
+                </BarChart>
+              )}
             </ResponsiveContainer>
           </div>
         </Card>
@@ -134,12 +197,12 @@ export default function CouleursPage() {
       {/* ── Sankey : flux couleur achat → reprise ── */}
       <SankeyChart
         data={sankeyCouleur}
-        title="Flux couleur : véhicule acheté → véhicule repris"
+        title="Flux couleur : reprise → achat"
       />
 
       <SankeyChart
         data={sankeyCategorie}
-        title="Flux catégorie : véhicule acheté → véhicule repris"
+        title="Flux catégorie : reprise → achat"
       />
 
       {/* ── Détail grille ── */}

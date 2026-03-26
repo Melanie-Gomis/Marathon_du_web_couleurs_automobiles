@@ -342,6 +342,40 @@ export function fetchCiviliteData(filters) {
   }));
 }
 
+// ── Couleurs par département (pour carte choroplèthe) ──
+
+export function fetchDeptColorData(filters) {
+  const rows = applyFilters(filters);
+  const map = {};
+  rows.forEach((r) => {
+    const d = r.d;
+    if (!map[d]) map[d] = { total: 0, colors: {} };
+    map[d].total++;
+    const c = r.cv || "Inconnu";
+    map[d].colors[c] = (map[d].colors[c] || 0) + 1;
+  });
+
+  return Object.entries(map).map(([code, d]) => {
+    // Trouver la couleur dominante
+    let dominant = "", maxCount = 0;
+    const colorEntries = Object.entries(d.colors).sort((a, b) => b[1] - a[1]);
+    if (colorEntries.length > 0) {
+      dominant = colorEntries[0][0];
+      maxCount = colorEntries[0][1];
+    }
+    return {
+      code,
+      total: d.total,
+      dominant,
+      colors: colorEntries.map(([name, count]) => ({
+        name,
+        count,
+        pct: d.total > 0 ? Math.round((count / d.total) * 100) : 0,
+      })),
+    };
+  });
+}
+
 // ── Options de filtres ──────────────────────────────────
 
 export function getFilterOptions(brandId) {

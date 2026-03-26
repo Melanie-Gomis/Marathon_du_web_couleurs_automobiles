@@ -129,7 +129,7 @@ export default function CarAnimation() {
               className="w-full h-auto"
               style={{
                 filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.2))",
-                transform: lane.direction === "up" ? "rotate(180deg)" : "none",
+                transform: lane.direction === "down" ? "rotate(180deg)" : "none",
               }}
               loading="eager"
             />
