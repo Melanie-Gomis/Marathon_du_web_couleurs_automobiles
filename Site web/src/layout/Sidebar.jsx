@@ -43,7 +43,10 @@ export default function Sidebar({ collapsed, onToggle }) {
       {/* ── Header ──────────────────── */}
       <div className="flex items-center justify-between px-4 h-16 border-b border-border">
         {!collapsed && (
-          <span className="text-lg font-bold text-meetdeal-700 tracking-tight">
+          <span
+            onClick={() => navigate("/")}
+            className="text-lg font-bold text-meetdeal-700 tracking-tight cursor-pointer hover:text-meetdeal-500 transition-colors"
+          >
             MeetDeal
           </span>
         )}

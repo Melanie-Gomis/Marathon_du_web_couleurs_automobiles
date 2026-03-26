@@ -35,6 +35,7 @@ export default function SalesBarChart({ data = [], title = "Ventes mensuelles" }
               tick={{ fontSize: 11, fill: "#6B7280" }}
               tickLine={false}
               axisLine={false}
+              allowDecimals={false}
             />
             <Tooltip
               contentStyle={{

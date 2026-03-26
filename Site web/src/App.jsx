@@ -10,6 +10,7 @@ import CartePage from "./pages/CartePage";
 import GraphiquesPage from "./pages/GraphiquesPage";
 import ConcurrencePage from "./pages/ConcurrencePage";
 import CouleursPage from "./pages/CouleursPage";
+import PredictionPage from "./pages/PredictionPage";
 
 // Layout
 import DashboardLayout from "./layout/DashboardLayout";
@@ -22,6 +23,7 @@ const App = () => {
           {/* ── Pages publiques ─────────────── */}
           <Route path="/" element={<Landing />} />
           <Route path="/brand-select" element={<BrandSelect />} />
+          <Route path="/prediction" element={<PredictionPage />} />
 
           {/* ── Dashboard (protégé par brand) ── */}
           <Route path="/dashboard" element={<DashboardLayout />}>

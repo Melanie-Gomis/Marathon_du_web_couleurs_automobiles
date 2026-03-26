@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BarChart3, Map, GitFork, Shield } from "lucide-react";
+import { ArrowRight, BarChart3, Map, GitFork, Shield, Sparkles, Palette } from "lucide-react";
 import CarAnimation from "../components/landing/CarAnimation";
 
 const FEATURES = [
@@ -101,6 +101,52 @@ export default function Landing() {
               Découvrir
             </a>
           </div>
+        </div>
+      </section>
+
+      {/* ── Prediction CTA ───────────────────────── */}
+      <section className="relative px-6 md:px-12 lg:px-20 py-16 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 overflow-hidden">
+        {/* Decorative color circles */}
+        <div className="absolute inset-0 flex items-center justify-center gap-6 opacity-10 pointer-events-none">
+          {["#E0E0E0", "#1565C0", "#C62828", "#2E7D32", "#F9A825", "#6A1B9A", "#E65100", "#333"].map((c, i) => (
+            <div
+              key={i}
+              className="w-32 h-32 rounded-full blur-2xl"
+              style={{ backgroundColor: c, animationDelay: `${i * 0.3}s` }}
+            />
+          ))}
+        </div>
+
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 text-white/80 text-xs font-medium rounded-full mb-5 backdrop-blur-sm">
+            <Sparkles className="w-3.5 h-3.5" />
+            Modèle de prédiction IA
+          </div>
+
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            Quelle couleur de voiture
+            <br />
+            <span className="text-meetdeal-400">vous correspond ?</span>
+          </h2>
+
+          <p className="text-gray-400 text-base max-w-lg mx-auto mb-8 leading-relaxed">
+            Notre modèle d'intelligence artificielle analyse votre profil
+            et prédit la catégorie de couleur qui vous correspond le mieux.
+          </p>
+
+          <Link
+            to="/prediction"
+            className="
+              inline-flex items-center gap-3 px-8 py-4
+              bg-meetdeal-600 text-white font-semibold rounded-xl
+              hover:bg-meetdeal-500 hover:shadow-2xl hover:shadow-meetdeal-500/20
+              transition-all text-base group
+            "
+          >
+            <Palette className="w-5 h-5" />
+            Découvrir ma couleur
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
       </section>
 
