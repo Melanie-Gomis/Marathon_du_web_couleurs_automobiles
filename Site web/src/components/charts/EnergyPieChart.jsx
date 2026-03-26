@@ -33,7 +33,7 @@ export default function EnergyPieChart({
               nameKey="name"
             >
               {data.map((entry, i) => (
-                <Cell key={i} fill={entry.color} />
+                <Cell key={i} fill={entry.fill || entry.color || "#6B7280"} />
               ))}
             </Pie>
             <Tooltip

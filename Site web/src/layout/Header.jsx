@@ -42,10 +42,7 @@ export default function Header({ onMenuToggle }) {
           </span>
         )}
 
-        <button className="relative p-2 rounded-lg hover:bg-surface-alt transition-colors">
-          <Bell className="w-5 h-5 text-text-muted" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-meetdeal-500 rounded-full"></span>
-        </button>
+        
 
         <div className="w-8 h-8 bg-meetdeal-600 rounded-full flex items-center justify-center">
           <span className="text-white text-xs font-bold">MD</span>

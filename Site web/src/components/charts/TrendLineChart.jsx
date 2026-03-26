@@ -44,7 +44,7 @@ export default function TrendLineChart({
             />
             <Line
               type="monotone"
-              dataKey="total"
+              dataKey="ventes"
               name="Total ventes"
               stroke="#991B1B"
               strokeWidth={2.5}

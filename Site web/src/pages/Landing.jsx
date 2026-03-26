@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, BarChart3, Map, GitFork, Shield } from "lucide-react";
+import CarAnimation from "../components/landing/CarAnimation";
 
 const FEATURES = [
   {
@@ -45,8 +46,19 @@ export default function Landing() {
       </nav>
 
       {/* ── Hero ────────────────────────────────── */}
-      <section className="px-6 md:px-12 lg:px-20 pt-16 pb-24 md:pt-24 md:pb-32">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="relative overflow-hidden px-6 md:px-12 lg:px-20 pt-16 pb-24 md:pt-24 md:pb-32">
+        <CarAnimation />
+
+        {/* Overlay pour lisibilité du texte */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: "radial-gradient(ellipse at center, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.75) 60%, rgba(255,255,255,0.5) 100%)",
+            zIndex: 1,
+          }}
+        />
+
+        <div className="max-w-4xl mx-auto text-center relative" style={{ zIndex: 10 }}>
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-meetdeal-50 text-meetdeal-700 text-xs font-medium rounded-full mb-6">
             <span className="w-2 h-2 bg-meetdeal-500 rounded-full animate-pulse"></span>
             Plateforme Data Automobile

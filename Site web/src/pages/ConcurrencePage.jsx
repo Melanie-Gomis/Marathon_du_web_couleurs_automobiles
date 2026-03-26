@@ -1,19 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useFilters } from "../store/FilterContext";
 import { BRANDS } from "../data/mockData";
-import { fetchCompetitionData } from "../services/api";
+import { fetchCompetitionData, fetchRadarData } from "../services/api";
 import FilterBar from "../components/filters/FilterBar";
 import CompetitionBarChart from "../components/charts/CompetitionBarChart";
 import Card, { CardHeader, CardTitle } from "../components/ui/Card";
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 
 export default function ConcurrencePage() {
   const { filters } = useFilters();
   const currentBrand = BRANDS.find((b) => b.id === filters.brand);
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    fetchCompetitionData(filters).then(setData);
-  }, [filters]);
+  const data = fetchCompetitionData(filters);
+  const radarData = fetchRadarData(filters);
 
   const total = data.reduce((acc, d) => acc + d.weight, 0);
 
@@ -63,6 +70,43 @@ export default function ConcurrencePage() {
           </div>
         </Card>
       </div>
+
+      {/* ── Radar : Achat vs Reprise par catégorie ── */}
+      {radarData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Radar : catégories achetées vs reprises</CardTitle>
+          </CardHeader>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                <PolarGrid stroke="#E5E7EB" />
+                <PolarAngleAxis
+                  dataKey="axis"
+                  tick={{ fontSize: 11, fill: "#374151" }}
+                />
+                <PolarRadiusAxis tick={{ fontSize: 10, fill: "#9CA3AF" }} />
+                <Radar
+                  name="Véhicule acheté"
+                  dataKey="achat"
+                  stroke="#991B1B"
+                  fill="#991B1B"
+                  fillOpacity={0.3}
+                />
+                <Radar
+                  name="Véhicule repris"
+                  dataKey="reprise"
+                  stroke="#3B82F6"
+                  fill="#3B82F6"
+                  fillOpacity={0.2}
+                />
+                <Legend wrapperStyle={{ fontSize: "11px" }} />
+                <Tooltip />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

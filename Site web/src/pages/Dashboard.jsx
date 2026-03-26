@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   ShoppingCart,
   RefreshCw,
-  Percent,
   Zap,
   Car,
-  TrendingUp,
   Target,
-  Gauge,
+  Users,
+  Palette,
 } from "lucide-react";
 import { useFilters } from "../store/FilterContext";
 import { BRANDS } from "../data/mockData";
 import {
   fetchKPIs,
   fetchMonthlySales,
+  fetchMonthlyEnergie,
   fetchDeptData,
   fetchEnergyBreakdown,
   fetchCompetitionData,
+  fetchColorBreakdown,
+  fetchCategorieBreakdown,
+  fetchRadarData,
 } from "../services/api";
 
 import FilterBar from "../components/filters/FilterBar";
@@ -31,47 +34,19 @@ export default function Dashboard() {
   const { filters } = useFilters();
   const currentBrand = BRANDS.find((b) => b.id === filters.brand);
 
-  const [kpis, setKpis] = useState(null);
-  const [monthlySales, setMonthlySales] = useState([]);
-  const [deptData, setDeptData] = useState([]);
-  const [energyData, setEnergyData] = useState([]);
-  const [competitionData, setCompetitionData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const kpis = fetchKPIs(filters);
+  const monthlySales = fetchMonthlySales(filters);
+  const monthlyEnergie = fetchMonthlyEnergie(filters);
+  const deptData = fetchDeptData(filters);
+  const energyData = fetchEnergyBreakdown(filters);
+  const competitionData = fetchCompetitionData(filters);
 
-  // Recharger les données quand les filtres changent
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-
-    async function loadData() {
-      const [k, ms, dd, ed, cd] = await Promise.all([
-        fetchKPIs(filters),
-        fetchMonthlySales(filters),
-        fetchDeptData(filters),
-        fetchEnergyBreakdown(filters),
-        fetchCompetitionData(filters),
-      ]);
-
-      if (!cancelled) {
-        setKpis(k);
-        setMonthlySales(ms);
-        setDeptData(dd);
-        setEnergyData(ed);
-        setCompetitionData(cd);
-        setLoading(false);
-      }
-    }
-
-    loadData();
-    return () => { cancelled = true; };
-  }, [filters]);
-
-  if (loading || !kpis) {
+  if (!kpis) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="flex items-center gap-3 text-text-muted">
           <RefreshCw className="w-5 h-5 animate-spin" />
-          <span>Chargement des données...</span>
+          <span>Aucune donnée pour cette marque.</span>
         </div>
       </div>
     );
@@ -79,17 +54,15 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* ── Page header ─────────────── */}
       <div>
         <h1 className="text-2xl font-bold text-text">
           Vue d'ensemble — {currentBrand?.name}
         </h1>
         <p className="text-sm text-text-muted mt-1">
-          Données agrégées sur la période sélectionnée. Doublons comptés (chaque ligne = 1 client).
+          Données réelles ({kpis.totalVentes.toLocaleString("fr-FR")} transactions avec reprise couleur).
         </p>
       </div>
 
-      {/* ── Filtres ─────────────────── */}
       <FilterBar />
 
       {/* ── KPIs ────────────────────── */}
@@ -97,20 +70,13 @@ export default function Dashboard() {
         <KPICard
           label="Total ventes"
           value={kpis.totalVentes}
-          trend={kpis.evolutionMoM}
           icon={ShoppingCart}
         />
         <KPICard
-          label="Reprises"
-          value={kpis.reprises}
-          unit="véhicules"
-          icon={RefreshCw}
-        />
-        <KPICard
-          label="Taux de reprise"
-          value={kpis.tauxReprise}
+          label="Part essence"
+          value={kpis.partEssence}
           unit="%"
-          icon={Percent}
+          icon={Car}
         />
         <KPICard
           label="Part électrique"
@@ -118,9 +84,14 @@ export default function Dashboard() {
           unit="%"
           icon={Zap}
         />
+        <KPICard
+          label="Taux concurrence"
+          value={kpis.tauxConcurrence}
+          unit="%"
+          icon={Target}
+        />
       </div>
 
-      {/* ── KPIs secondaires ────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KPICard
           label="Modèle phare"
@@ -128,16 +99,14 @@ export default function Dashboard() {
           icon={Car}
         />
         <KPICard
-          label="Km reprise médian"
-          value={kpis.kmsRepriseMedian}
-          unit="km"
-          icon={Gauge}
+          label="Catégorie dominante"
+          value={kpis.topCategorie}
+          icon={Palette}
         />
         <KPICard
-          label="Taux concurrence"
-          value={kpis.tauxConcurrence}
-          unit="%"
-          icon={Target}
+          label="Répartition H/F"
+          value={`${kpis.pctHomme}% / ${kpis.pctFemme}%`}
+          icon={Users}
         />
       </div>
 
@@ -153,9 +122,8 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* ── Bar chart détaillé ──────── */}
       <SalesBarChart
-        data={monthlySales}
+        data={monthlyEnergie}
         title="Ventes mensuelles par type d'énergie"
       />
 

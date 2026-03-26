@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useFilters } from "../store/FilterContext";
 import { BRANDS } from "../data/mockData";
 import {
   fetchMonthlySales,
+  fetchMonthlyEnergie,
   fetchEnergyBreakdown,
   fetchModeleStats,
 } from "../services/api";
@@ -16,21 +17,10 @@ export default function GraphiquesPage() {
   const { filters } = useFilters();
   const currentBrand = BRANDS.find((b) => b.id === filters.brand);
 
-  const [sales, setSales] = useState([]);
-  const [energy, setEnergy] = useState([]);
-  const [modeles, setModeles] = useState([]);
-
-  useEffect(() => {
-    Promise.all([
-      fetchMonthlySales(filters),
-      fetchEnergyBreakdown(filters),
-      fetchModeleStats(filters),
-    ]).then(([s, e, m]) => {
-      setSales(s);
-      setEnergy(e);
-      setModeles(m);
-    });
-  }, [filters]);
+  const sales = fetchMonthlySales(filters);
+  const monthlyEnergie = fetchMonthlyEnergie(filters);
+  const energy = fetchEnergyBreakdown(filters);
+  const modeles = fetchModeleStats(filters);
 
   return (
     <div className="space-y-6">
@@ -50,9 +40,8 @@ export default function GraphiquesPage() {
         <EnergyPieChart data={energy} title="Mix énergétique" />
       </div>
 
-      <SalesBarChart data={sales} title="Détail mensuel par énergie" />
+      <SalesBarChart data={monthlyEnergie} title="Détail mensuel par énergie" />
 
-      {/* ── Table des modèles ──────── */}
       <Card>
         <CardHeader>
           <CardTitle>Performance par modèle</CardTitle>
@@ -62,8 +51,8 @@ export default function GraphiquesPage() {
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left px-4 py-3 font-medium text-text-muted">Modèle</th>
+                <th className="text-left px-4 py-3 font-medium text-text-muted">Catégorie</th>
                 <th className="text-right px-4 py-3 font-medium text-text-muted">Ventes</th>
-                <th className="text-right px-4 py-3 font-medium text-text-muted">Taux reprise</th>
                 <th className="text-right px-4 py-3 font-medium text-text-muted">Part élec.</th>
                 <th className="text-left px-4 py-3 font-medium text-text-muted">Répartition</th>
               </tr>
@@ -72,17 +61,17 @@ export default function GraphiquesPage() {
               {modeles.map((m) => (
                 <tr key={m.name} className="border-t border-border hover:bg-surface-alt">
                   <td className="px-4 py-3 font-medium">{m.name}</td>
+                  <td className="px-4 py-3 text-text-muted capitalize">{m.categorie}</td>
                   <td className="px-4 py-3 text-right font-semibold">
                     {m.ventes.toLocaleString("fr-FR")}
                   </td>
-                  <td className="px-4 py-3 text-right">{m.tauxReprise}%</td>
                   <td className="px-4 py-3 text-right">{m.partElec}%</td>
                   <td className="px-4 py-3">
                     <div className="w-full bg-surface-alt rounded-full h-2">
                       <div
                         className="bg-meetdeal-500 rounded-full h-2 transition-all"
                         style={{
-                          width: `${Math.min(100, (m.ventes / modeles[0].ventes) * 100)}%`,
+                          width: `${Math.min(100, (m.ventes / (modeles[0]?.ventes || 1)) * 100)}%`,
                         }}
                       />
                     </div>

@@ -67,3 +67,23 @@ body {
   color: var(--color-meetdeal-700);
   border-right: 3px solid var(--color-meetdeal-600);
 }
+
+/* ── Leaflet tooltip custom ───────────────────────── */
+.leaflet-tooltip-custom {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,.1);
+  font-family: var(--font-sans);
+}
+
+/* ── Car animation (Landing hero) ─────────────────── */
+@keyframes car-slide-down {
+  0%   { top: -15%; }
+  100% { top: 110%; }
+}
+@keyframes car-slide-up {
+  0%   { top: 110%; }
+  100% { top: -15%; }
+}
